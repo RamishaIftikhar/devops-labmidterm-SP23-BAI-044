@@ -17,7 +17,9 @@ pipeline {
             steps {
                 script {
                     def sha = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
+                    def author = sh(script: "git log -1 --pretty=format:'%an'", returnStdout: true).trim()
                     env.SHORT_SHA = sha
+                    env.COMMIT_AUTHOR = author
                     sh "docker build -t ${IMAGE_NAME}:latest ."
                     sh """
                         docker run --rm \
@@ -50,8 +52,10 @@ pipeline {
         always {
             script {
                 def sha = env.SHORT_SHA ?: 'unknown'
+                def author = env.COMMIT_AUTHOR ?: ''
+                def recipient = (author == 'RamishaIftikhar') ? 'ramishaiftikhar2018@gmail.com' : 'qasimalik@gmail.com'
                 emailext(
-                    to: 'qasimalik@gmail.com',
+                    to: recipient,
                     subject: "SP23-BAI-044 - Jenkins Build #${env.BUILD_NUMBER} (${currentBuild.currentResult})",
                     body: """Student Registration No: SP23-BAI-044
 Build Status: ${currentBuild.currentResult}
